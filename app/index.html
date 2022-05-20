@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="en" >
+<head>
+<meta charset="UTF-8">
+<title>hzzy love to rh</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<link rel="icon" href="./public/love.ico">
+<link rel="stylesheet" href="public/style.css">
+<link rel="stylesheet" href="public/animate.css">
+<script src="./public/axios.min.js"></script>
+</head>
+<body>
+
+<div class="envlope-wrapper">
+    <div id="envelope" class="close">
+        <div class="front flap"></div>
+        <div class="front pocket"></div>
+        <div class="letter">
+            <div class="words line1"></div>
+            <div class="words line2"></div>
+            <div class="words line3"></div>
+            <div class="words line4"></div>
+        </div>
+        <div class="hearts">
+            <div class="heart a1"></div>
+            <div class="heart a2"></div>
+            <div class="heart a3"></div>
+        </div>
+    </div>
+    <div class="wrap_books removesDispaly">
+        <div class="wrap_books_child">
+            <div class="removes" title="关闭"></div>
+            <div><h4>爱老虎油~</h4></div>
+            <div class="love_wrap">
+                <img id="agree" class="animate__animated animate__heartBeat animate__infinite" src="./public/love.svg" alt="">
+                <img id="cancel" src="./public/xinsui.svg" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var envelope = document.getElementById('envelope')
+    var clickOpen = document.getElementById('open')
+    var clickClose = document.getElementById('reset')
+    var agree = document.getElementById('agree')
+    var cancel = document.getElementById('cancel')
+    envelope.onclick = function() {
+        open()
+
+        if (localStorage.getItem('isok') == 'false' || localStorage.getItem('isok') == 'true') {
+            if(localStorage.getItem('isok') == 'false') {
+                hint('拒绝过了')
+            }else {
+                hint('主人已经收到了您的爱意~')
+            }
+        } else {
+            setTimeout(() => {
+                document.querySelector('.wrap_books').classList.remove('removesDispaly')
+            }, 2000)
+        }
+    }
+    function open() {
+        envelope.classList.add("open")
+        envelope.classList.remove("close");
+    }
+    function close() {
+        envelope.classList.add("close")
+        envelope.classList.remove("open");
+    }
+
+    // 关闭按钮
+    var closep = document.querySelector('.removes')
+    closep.onclick = function() {
+        document.querySelector('.wrap_books').classList.add('removesDispaly')
+        close()
+        closefireworks()
+    }
+
+    // 封装发送ajax请求
+    function request(type, email) {
+        return new Promise((resolve, reject) => {
+            axios({
+                method: 'get',//提交方法
+                url: 'http://124.223.198.104:3123/api/smsemail',//提交地址
+                params: {
+                    type,
+                    email
+                }
+            }).then(res => {
+                resolve(res)
+            }).catch(err => {
+                reject(err)
+            })
+        })
+    }
+    // 点击爱心发送请求
+    agree.onclick = function() {
+        console.log('爱心发送~接受爱意');
+        let type = 0
+        let email = '3067881369@qq.com'
+        request(type, email).then(res=> {
+            // console.log(res)
+            if(res.data.code == 200) {
+                // 开始放烟花
+                fireworks()
+                localStorage.setItem('isok', true)
+                document.querySelector('.love_wrap').remove()
+            }
+        })
+        hint('对方已经收到你的心意~')
+    }
+    cancel.onclick = function() {
+        console.log('爱心发送~拒绝爱意');
+        let type = 1
+        let email = '3067881369@qq.com'
+        request(type, email).then(res=> {
+            // console.log(res)
+            hint('来日方长，江湖再见~')
+            localStorage.setItem('isok', false)
+            document.querySelector('.love_wrap').remove()
+            document.querySelector('.wrap_books').classList.add('removesDispaly')
+            close()
+        })
+    }
+
+    // 提示框封装
+    function hint(txt) {
+        let hintbox = document.createElement('div')
+        hintbox.style.width = '220px'
+        hintbox.style.color = '#999'
+        hintbox.style.height = '50px'
+        hintbox.style.background = '#fff'
+        hintbox.style.boxShadow = '10px 20px 30px rgba(0,0,0,0.13)'
+        hintbox.style.textAlign = 'center'
+        hintbox.style.lineHeight = '50px'
+        hintbox.style.position = 'relative'
+        hintbox.style.top = '0'
+        hintbox.style.left = '0'
+        hintbox.style.right = '0'
+        hintbox.style.bottom = '0'
+        hintbox.style.margin = 'auto'
+        // hintbox.style.marginLeft = '-150px'
+        hintbox.style.zIndex = '9999'
+        hintbox.innerHTML = txt
+        hintbox.style.borderRadius = '10px'
+        document.body.appendChild(hintbox)
+        setTimeout(() => {
+            hintbox.remove()
+        }, 1500)
+    }
+</script>
+
+<!-- 烟花效果 ---------------------------------------------  ************************************************* -->
+<script>
+    const list = ["red", "yellow", "green", "blue", "orange", "black",
+        "LightPink","Magenta","DarkSlateBlue","MediumBlue","DoderBlue",
+        "PaleGodenrod","Salmon","IndianRed","Maroon","DimGray",
+        "OrangeRed","LightSalmon","Chocolate","DarkGreen","Lime",
+        "Gold","Magenta","LawnGreen","MediumBlue","RoyalBlue",
+        "PaleGreen","SeaGreen","Turquoise","DarkTurquoise","DeepSkyBlue",
+        "Aqua","LightGoldenrodYellow"]; //颜色
+
+    var Number = 30 //数量  太大会奔溃
+    var magnitude = 200 //绽放大小范围 PX
+    const size = [10, 15] //小球大小范围 PX
+    const velocity = 1;  //停留时间  S
+    var timeli = 0.5;  //烟花发射速度 S
+    var sotp = false  //停止烟花
+    var timeList ; //计时器
+    function method(x, y,e) {
+        const box = document.createElement("div");
+        box.className = 'div'
+        box.id = 'item'+e
+        box.style.left = x + "px";
+        box.style.top = y + "px";
+        box.style.width = magnitude + "px"
+        box.style.height = magnitude + "px"
+        document.querySelector('.wrap_books').appendChild(box);
+        const div = document.getElementById(`item${e}`)
+        for (let i = 0; i < Number; i++) {
+            const index = Math.floor(Math.random() * list.length);
+            const a = Math.floor(Math.random() * (size[0] - size[1])) + size[1]
+            const color = list[index];
+            const bondsman = document.createElement("span");
+            bondsman.classList.add("bondsman");
+            bondsman.style.background = color;
+            bondsman.style.left = '50%';
+            bondsman.style.top = '50%';
+            bondsman.style.width = a + 'px';
+            bondsman.style.height = a + 'px';
+            bondsman.style.transition = velocity + 's';
+            bondsman.style.opacity = 0
+            div.appendChild(bondsman);
+        }
+        const time = velocity * 1000
+        const span = div.getElementsByClassName("bondsman");
+        setTimeout(() => {
+            for (let i = 0; i < span.length; i++) {
+                if (Math.round(Math.random())) {
+                    span[i].style.left = Math.floor(Math.random() * (100 - 0)) + 0 + '%'
+                    span[i].style.top = Math.floor(Math.random() * (100 - 0)) + 0 + '%'
+                    span[i].style.opacity = 1
+                } else {
+                    span[i].style.left = Math.floor(Math.random() * (100 - 0)) + 0 + '%'
+                    span[i].style.top = Math.floor(Math.random() * (100 - 0)) + 0 + '%'
+                    span[i].style.opacity = 1
+                }
+                setTimeout(() => {
+                    span[i].style.opacity = 0;
+                }, time / 2)
+            }
+        }, 100)
+
+        setTimeout(() => {
+            document.querySelector('.wrap_books').removeChild(div)
+        }, time + 100)
+    }
+    function wire(e) {
+        return new Promise((resolve)=>{
+        const box = document.createElement("div");
+        box.className = 'span'
+            box.id = 'index'+e
+        box.style.left = Math.floor(Math.random() * (90 - 10)) + 10 + '%'
+        box.style.top = '100%'
+        box.style.transition = velocity + 's'
+            box.opacity = 0;
+        document.querySelector('.wrap_books').appendChild(box);
+        const span = document.getElementById(`index${e}`)
+        setTimeout(() => {
+            span.style.top = Math.floor(Math.random() * (50 - 15)) + 15 + '%'
+        }, 200)
+            setTimeout(() => {
+                span.opacity = 1;
+            }, 300)
+        setTimeout(() => {
+            let data = {
+                span:span,e:e}
+            resolve(data)
+        }, velocity * 1000 + 100)
+        })
+    }
+	
+    function fireworks(){
+        I = 0
+        timeList = setInterval(() => {
+            wire(I++).then((data)=>{
+                method(data.span.offsetLeft, data.span.offsetTop,data.e)
+                setTimeout(()=>{
+                    document.querySelector('.wrap_books').removeChild(data.span)
+                },100)
+            })
+        }, timeli*1000)
+    }
+
+    function closefireworks(){
+        clearInterval(timeList)
+        stop = false
+    }
+</script>
+
+</div>
+</body>
+</html>
